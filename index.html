@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Watch Store</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin:0;
+    background:#f5f5f5;
+    color:#333;
+}
+.hidden { display:none; }
+
+/* Common Styles */
+h1,h2,h3 { color:#2c3e50; }
+button { cursor:pointer; padding:8px 15px; border:none; border-radius:5px; background:#3f4c6b; color:#fff; margin-top:5px; }
+input { padding:8px; margin:5px 0; width:100%; border-radius:5px; border:1px solid #ccc; }
+
+/* Login / Signup */
+#loginPage, #signupPage {
+    max-width:400px;
+    margin:50px auto;
+    padding:30px;
+    background:#fff;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+#loginPage h2, #signupPage h2 { text-align:center; }
+
+/* Products */
+#productPage {
+    max-width:1100px;
+    margin:30px auto;
+    padding:20px;
+}
+.products {
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+    justify-content:center;
+}
+.product-card {
+    background:#fff;
+    border-radius:10px;
+    padding:15px;
+    width:200px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.08);
+    text-align:center;
+}
+.product-card img { width:100%; border-radius:10px; height:180px; object-fit:cover; }
+.cart-icon {
+    position:fixed;
+    top:20px;
+    right:20px;
+    background:#3f4c6b;
+    color:#fff;
+    padding:10px 15px;
+    border-radius:50px;
+    font-weight:bold;
+}
+
+/* Cart Page */
+#cartPage {
+    max-width:800px;
+    margin:30px auto;
+    padding:20px;
+    background:#fff;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+table { width:100%; border-collapse:collapse; margin-top:20px; }
+th, td { border:1px solid #ccc; padding:10px; text-align:left; }
+th { background:#3f4c6b; color:#fff; }
+</style>
+</head>
+<body>
+
+<!-- Login Page -->
+<div id="loginPage">
+    <h2>Login</h2>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p style="text-align:center;margin-top:10px;">Don't have an account? <a href="#" onclick="showSignup()">Sign Up</a></p>
+</div>
+
+<!-- Signup Page -->
+<div id="signupPage" class="hidden">
+    <h2>Sign Up</h2>
+    <input type="text" id="firstName" placeholder="First Name">
+    <input type="text" id="lastName" placeholder="Last Name">
+    <input type="tel" id="phone" placeholder="Phone Number">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <input type="password" id="confirmPassword" placeholder="Confirm Password">
+    <button onclick="signup()">Sign Up</button>
+    <p style="text-align:center;margin-top:10px;">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+</div>
+
+<!-- Products Page -->
+<div id="productPage" class="hidden">
+    <div class="cart-icon" onclick="showCart()">Cart (<span id="cartCount">0</span>)</div>
+    <h1 style="text-align:center;">Online Watch Store</h1>
+    <div class="products" id="productsContainer"></div>
+</div>
+
+<!-- Cart Page -->
+<div id="cartPage" class="hidden">
+    <h2>Your Cart</h2>
+    <table id="cartTable">
+        <tr>
+            <th>Watch</th>
+            <th>Price</th>
+            <th>Quantity</th>
+        </tr>
+    </table>
+    <h3>Total: $<span id="totalAmount">0</span></h3>
+    <button onclick="checkout()">Checkout</button>
+    <button onclick="backToProducts()" style="background:#888;">Back to Store</button>
+</div>
+
+<script>
+let users = [];
+let currentUser = null;
+let cart = [];
+
+// Products with images from "images" folder
+const products = [
+    {id:1, name:"Watch 1", price:120, img:"watch1.webp"},
+    {id:2, name:"Watch 2", price:150, img:"watch2.jpeg"},
+    {id:3, name:"Watch 3", price:200, img:"watch3.jpeg"},
+    {id:4, name:"Watch 4", price:180, img:"watch4.jpeg"},
+    {id:5, name:"Watch 5", price:90, img:"watch5.jpeg"},
+    {id:6, name:"Watch 6", price:220, img:"watch6.jpeg"},
+    {id:7, name:"Watch 7", price:130, img:"watch7.jpeg"},
+    {id:8, name:"Watch 8", price:175, img:"watch8.jpeg"},
+    {id:9, name:"Watch 9", price:210, img:"watch9.jpeg"},
+    {id:10, name:"Watch 10", price:190, img:"watch10.jpeg"},
+];
+
+function showSignup(){
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('signupPage').classList.remove('hidden');
+}
+function showLogin(){
+    document.getElementById('signupPage').classList.add('hidden');
+    document.getElementById('loginPage').classList.remove('hidden');
+}
+
+function signup(){
+    const fName = document.getElementById('firstName').value.trim();
+    const lName = document.getElementById('lastName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const pass = document.getElementById('password').value;
+    const cPass = document.getElementById('confirmPassword').value;
+
+    if(!fName || !lName || !phone || !email || !pass || !cPass){
+        alert("Please fill all fields");
+        return;
+    }
+    if(pass !== cPass){
+        alert("Passwords do not match");
+        return;
+    }
+    if(users.find(u=>u.email === email)){
+        alert("Email already exists");
+        return;
+    }
+
+    users.push({fName,lName,phone,email,pass});
+    alert("Account created! You can login now.");
+    showLogin();
+}
+
+function login(){
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+
+    const user = users.find(u=>u.email === email && u.pass === pass);
+    if(user){
+        currentUser = user;
+        showProducts();
+    }else{
+        alert("Invalid email or password");
+    }
+}
+
+function showProducts(){
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('signupPage').classList.add('hidden');
+    document.getElementById('productPage').classList.remove('hidden');
+    renderProducts();
+}
+
+function renderProducts(){
+    const container = document.getElementById('productsContainer');
+    container.innerHTML = '';
+    products.forEach(p=>{
+        const card = document.createElement('div');
+        card.classList.add('product-card');
+        card.innerHTML = `
+            <img src="${p.img}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <p>$${p.price}</p>
+            <button onclick="addToCart(${p.id})">Add to Cart</button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function addToCart(id){
+    const existing = cart.find(c=>c.id===id);
+    if(existing){
+        existing.qty +=1;
+    }else{
+        const product = products.find(p=>p.id===id);
+        cart.push({...product, qty:1});
+    }
+    document.getElementById('cartCount').innerText = cart.reduce((a,b)=>a+b.qty,0);
+}
+
+function showCart(){
+    document.getElementById('productPage').classList.add('hidden');
+    document.getElementById('cartPage').classList.remove('hidden');
+    renderCart();
+}
+
+function renderCart(){
+    const table = document.getElementById('cartTable');
+    table.innerHTML = `
+        <tr>
+            <th>Watch</th>
+            <th>Price</th>
+            <th>Quantity</th>
+        </tr>
+    `;
+    cart.forEach(item=>{
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.name}</td>
+            <td>$${item.price}</td>
+            <td>${item.qty}</td>
+        `;
+        table.appendChild(row);
+    });
+    document.getElementById('totalAmount').innerText = cart.reduce((a,b)=>a+b.price*b.qty,0);
+}
+
+function checkout(){
+    if(cart.length===0){
+        alert("Cart is empty");
+        return;
+    }
+    alert("Thank you for your purchase!");
+    cart=[];
+    document.getElementById('cartCount').innerText=0;
+    backToProducts();
+}
+
+function backToProducts(){
+    document.getElementById('cartPage').classList.add('hidden');
+    document.getElementById('productPage').classList.remove('hidden');
+}
+</script>
+
+</body>
+</html>
